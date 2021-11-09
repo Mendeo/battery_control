@@ -12,14 +12,39 @@
 	<a href="/startCharge">Начать зарядку</a>
 	<br>
 	<a href="/stopCharge">Остановить зарядку</a>
+	<br>
 	<h2>Последние известные параметры</h2>
-
+	<table id="batInfo"></table>
 </body>
 <script type="text/javascript">
 	(function()
 	{
 		'use strict';
-
+		setInterval(() =>
+		{
+			fetch('/getBatteryInfo').then((res) => 
+			{
+				if (res.ok) return res.json();
+			}).then((data) =>
+			{
+				const batInfoTable = document.getElementById('batInfo');
+				while (batInfoTable.firstChild)
+				{
+					batInfoTable.firstChild.remove();
+				}
+				for (let key in data)
+				{
+					const row = document.createElement('tr');
+					const col1 = document.createElement('td');
+					const col2 = document.createElement('td');
+					col1.innerText = key;
+					col2.innerText = data[key];
+					row.append(col1);
+					row.append(col2);
+					batInfoTable.append(row);
+				}
+			});
+		}, 10000);
 	})();
 </script>
 </html>

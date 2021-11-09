@@ -120,8 +120,13 @@ function app(req, res)
 	}
 	else if (url === '/getBatteryInfo')
 	{
-		res.writeHead(200);
-
+		const json = JSON.stringify(LAST_BATTERY_INFO);
+		res.writeHead(200,
+			{
+				'Content-Length': json.length,
+				'Content-Type': 'application/json;'
+			});
+		res.end(json);
 	}
 	else
 	{
