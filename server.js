@@ -20,17 +20,29 @@ function app(req, res)
 	console.log(req.headers);
 	if (url === '/')
 	{
-		res.writeHead(200);
+		res.writeHead(200,
+			{
+				'Content-Length': index_html.length,
+				'Content-Type': 'text/html'
+			});
 		res.end(index_html);
 	}
 	else if (url === '/favicon.ico')
 	{
-		res.writeHead(200);
+		res.writeHead(200,
+			{
+				'Content-Length': favicon_ico.length,
+				'Content-Type': 'image/x-icon'
+			});
 		res.end(favicon_ico);
 	}
 	else if (url === '/robots.txt')
 	{
-		res.writeHead(200);
+		res.writeHead(200,
+			{
+				'Content-Length': robots_txt.length,
+				'Content-Type': 'text/plain'
+			});
 		res.end(robots_txt);
 	}
 	else if (url === '/startCharge')
@@ -105,6 +117,11 @@ function app(req, res)
 				});
 			}
 		}
+	}
+	else if (url === '/getBatteryInfo')
+	{
+		res.writeHead(200);
+
 	}
 	else
 	{
