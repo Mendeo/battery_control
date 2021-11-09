@@ -71,9 +71,9 @@ function app(req, res)
 			else
 			{
 				let body = '';
-				req.on('data', chunk =>
+				req.on('data', (chunk) =>
 				{
-					body += chunk;
+					body += chunk.toString();
 					if (body.length > contentLength) req.connection.destroy();
 				});
 				req.on('end', () =>
@@ -94,7 +94,7 @@ function app(req, res)
 						catch (e)
 						{
 							res.writeHead(400);
-							res.end(e);
+							res.end();
 						}
 					}
 				});
