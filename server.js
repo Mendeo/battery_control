@@ -23,7 +23,7 @@ function app(req, res)
 		res.writeHead(200,
 			{
 				'Content-Length': index_html.length,
-				'Content-Type': 'text/html'
+				'Content-Type': 'text/html; charset=utf-8'
 			});
 		res.end(index_html);
 	}
@@ -41,7 +41,7 @@ function app(req, res)
 		res.writeHead(200,
 			{
 				'Content-Length': robots_txt.length,
-				'Content-Type': 'text/plain'
+				'Content-Type': 'text/plain; charset=utf-8'
 			});
 		res.end(robots_txt);
 	}
