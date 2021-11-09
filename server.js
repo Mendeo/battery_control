@@ -73,7 +73,7 @@ function app(req, res)
 				let body = '';
 				req.on('data', (chunk) =>
 				{
-					body += chunk.toString();
+					body += chunk;
 					if (body.length > contentLength) req.connection.destroy();
 				});
 				req.on('end', () =>
