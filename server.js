@@ -17,7 +17,7 @@ function app(req, res)
 	console.log('*******' + now.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) + '*******');
 	const url = req.url.split('?')[0];
 	console.log(url);
-	console.log(req.headers);
+	//console.log(req.headers);
 	if (url === '/')
 	{
 		res.writeHead(200,
@@ -91,10 +91,10 @@ function app(req, res)
 					}
 					else
 					{
+						//console.log(body);
 						try
 						{
 							LAST_BATTERY_INFO = JSON.stringify(JSON.parse(body));
-							console.log(LAST_BATTERY_INFO);
 							res.writeHead(204);
 							res.end();
 						}

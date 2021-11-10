@@ -25,7 +25,7 @@
 		{
 			getBatteryInfo();
 		}, 10000);
-		
+
 		function getBatteryInfo()
 		{
 			fetch('/getBatteryInfo').then((res) => 
@@ -44,7 +44,7 @@
 					const col1 = document.createElement('td');
 					const col2 = document.createElement('td');
 					col1.innerText = key;
-					col2.innerText = data[key];
+					col2.innerText = key === 'time' ? (new Date(data[key])).toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) : data[key];
 					row.append(col1);
 					row.append(col2);
 					batInfoTable.append(row);
