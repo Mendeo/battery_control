@@ -3,10 +3,10 @@ const http = require('http');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-const GPIO_SELECT_CMD = 'echo 17 > /sys/class/gpio/export';
-const GPIO_SET_DIRECTION_CMD = 'echo out > /sys/class/gpio/gpio17/direction';
-const GPIO_LOGICAL_1_CMD = 'echo 1 > /sys/class/gpio/gpio17/value';
-const GPIO_LOGICAL_0_CMD = 'echo 0 > /sys/class/gpio/gpio17/value';
+const GPIO_SELECT_CMD = 'echo test';//'echo 17 > /sys/class/gpio/export';
+const GPIO_SET_DIRECTION_CMD = 'echo test'; //'echo out > /sys/class/gpio/gpio17/direction';
+const GPIO_LOGICAL_1_CMD = 'echo test'; //'echo 1 > /sys/class/gpio/gpio17/value';
+const GPIO_LOGICAL_0_CMD = 'echo test'; //'echo 0 > /sys/class/gpio/gpio17/value';
 
 const index_html = fs.readFileSync('index.html');
 const robots_txt = fs.readFileSync('robots.txt');
