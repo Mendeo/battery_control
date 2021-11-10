@@ -16,7 +16,6 @@ else
 	MAX_CHARGE = Number(firstParam);
 }
 
-
 const SERVER_HOST = 'localhost';
 const SERVER_PORT = 5017;
 const CHECK_BATTERY_STATUS_PERIOD = 30000;
