@@ -37,48 +37,41 @@ checkBattery();
 
 function checkBattery()
 {
-	exec(TERMUX_COMMAND, (err, stdin, stderr) =>
+	executeCmd(TERMUX_COMMAND, (stdin) =>
 	{
-		if (err)
+		let data = null;
+		try
 		{
-			console.log(stderr);
+			data = JSON.parse(stdin);
+			data.time = new Date();
 		}
-		else
+		catch (e)
 		{
-			let data = null;
-			try
+			console.log(e.message);
+		}
+		if (data)
+		{
+			sendBatteryInfoRequest(JSON.stringify(data));
+			if (!IS_MANUAL)
 			{
-				data = JSON.parse(stdin);
-				data.time = new Date();
-			}
-			catch (e)
-			{
-				console.log(e.message);
-			}
-			if (data)
-			{
-				sendBatteryInfoRequest(JSON.stringify(data));
-				if (!IS_MANUAL)
+				if (!data.percentage || !data.status)
 				{
-					if (!data.percentage || !data.status)
+					console.log('Not enough data in battery info!');
+				}
+				else
+				{
+					if (data.status === 'NOT_CHARGING')
 					{
-						console.log('Not enough data in battery info!');
-					}
-					else
-					{
-						if (data.status === 'NOT_CHARGING')
+						if (data.percentage <= MIN_CHARGE)
 						{
-							if (data.percentage <= MIN_CHARGE)
-							{
-								requestStartCharge();
-							}
+							requestStartCharge();
 						}
-						else if (data.status === 'CHARGING')
+					}
+					else if (data.status === 'CHARGING')
+					{
+						if (data.percentage >= MAX_CHARGE)
 						{
-							if (data.percentage >= MAX_CHARGE)
-							{
-								requestStopCharge();
-							}
+							requestStopCharge();
 						}
 					}
 				}
@@ -133,4 +126,21 @@ function sendBatteryInfoRequest(json)
 		console.error(`Problem with request: ${e.message}`);
 	});
 	req.end(json);
+}
+
+function executeCmd(cmd, onSuccess, onError)
+{
+	exec(cmd, (err, stdin, stderr) =>
+	{
+		if (err || stderr)
+		{
+			if (err) console.log(err);
+			if (stderr) console.log('cmd out: ' + stderr);
+			if (onError) onError(err, stderr);
+		}
+		else
+		{
+			if (onSuccess) onSuccess(stdin);
+		}
+	});
 }
