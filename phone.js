@@ -4,6 +4,9 @@ const exec = require('child_process').exec;
 let MAX_CHARGE = Number(process.argv[2]);
 let MIN_CHARGE = Number(process.argv[3]);
 
+const SERVER_HOST = 'localhost';
+const SERVER_PORT = 5017;
+
 if (isNaN(MAX_CHARGE) || MAX_CHARGE <= 2) MAX_CHARGE = 45;
 if (isNaN(MIN_CHARGE) || MAX_CHARGE - MIN_CHARGE < 2) MIN_CHARGE = MAX_CHARGE - 2;
 
@@ -64,11 +67,25 @@ function checkBattery()
 function requestStartCharge()
 {
 	console.log('Starting charge');
+	const options =
+	{
+		hostname: SERVER_HOST,
+		port: SERVER_PORT,
+		path: '/startCharge'
+	};
+	http.get(options);
 }
 
 function requestStopCharge()
 {
 	console.log('Stoping charge');
+	const options =
+	{
+		hostname: SERVER_HOST,
+		port: SERVER_PORT,
+		path: '/stopCharge'
+	};
+	http.get(options);
 }
 
 function sendBatteryInfoRequest(json)
@@ -76,8 +93,8 @@ function sendBatteryInfoRequest(json)
 	//console.log(json);
 	const options =
 	{
-		hostname: 'localhost',
-		port: 5017,
+		hostname: SERVER_HOST,
+		port: SERVER_PORT,
 		path: '/setBatteryInfo',
 		method: 'POST',
 		headers:
