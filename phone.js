@@ -7,6 +7,7 @@ let MIN_CHARGE = Number(process.argv[3]);
 const SERVER_HOST = 'localhost';
 const SERVER_PORT = 5017;
 const CHECK_BATTERY_STATUS_PERIOD = 30000;
+const TERMUX_COMMAND = 'testTermux.bat'; //termux-battery-status
 
 if (isNaN(MAX_CHARGE) || MAX_CHARGE <= 2) MAX_CHARGE = 45;
 if (isNaN(MIN_CHARGE) || MAX_CHARGE - MIN_CHARGE < 2) MIN_CHARGE = MAX_CHARGE - 2;
@@ -17,7 +18,7 @@ checkBattery();
 
 function checkBattery()
 {
-	exec('testTermux.bat', (err, stdin, stderr) =>
+	exec(TERMUX_COMMAND, (err, stdin, stderr) =>
 	{
 		if (err)
 		{
