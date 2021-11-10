@@ -24,7 +24,14 @@ const TERMUX_COMMAND = 'testTermux.bat'; //termux-battery-status
 if (isNaN(MAX_CHARGE) || MAX_CHARGE <= 2) MAX_CHARGE = 45;
 if (isNaN(MIN_CHARGE) || MAX_CHARGE - MIN_CHARGE < 2) MIN_CHARGE = MAX_CHARGE - 2;
 
-console.log(`charge from ${MIN_CHARGE} to ${MAX_CHARGE}`);
+if (IS_MANUAL)
+{
+	console.log('Manual charge. Use web page to control.');
+}
+else
+{
+	console.log(`Charge from ${MIN_CHARGE} to ${MAX_CHARGE}`);
+}
 
 checkBattery();
 
