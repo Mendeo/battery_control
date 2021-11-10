@@ -1,8 +1,21 @@
 'use strict';
 const http = require('http');
 const exec = require('child_process').exec;
-let MAX_CHARGE = Number(process.argv[2]);
+const firstParam = process.argv[2];
+
+let MAX_CHARGE = NaN;
 let MIN_CHARGE = Number(process.argv[3]);
+
+let IS_MANUAL = false;
+if (firstParam === 'm')
+{
+	IS_MANUAL = true;
+}
+else
+{
+	MAX_CHARGE = Number(firstParam);
+}
+
 
 const SERVER_HOST = 'localhost';
 const SERVER_PORT = 5017;
@@ -39,24 +52,27 @@ function checkBattery()
 			if (data)
 			{
 				sendBatteryInfoRequest(JSON.stringify(data));
-				if (!data.percentage || !data.status)
+				if (!IS_MANUAL)
 				{
-					console.log('Not enough data in battery info!');
-				}
-				else
-				{
-					if (data.status === 'NOT_CHARGING')
+					if (!data.percentage || !data.status)
 					{
-						if (data.percentage <= MIN_CHARGE)
-						{
-							requestStartCharge();
-						}
+						console.log('Not enough data in battery info!');
 					}
-					else if (data.status === 'CHARGING')
+					else
 					{
-						if (data.percentage >= MAX_CHARGE)
+						if (data.status === 'NOT_CHARGING')
 						{
-							requestStopCharge();
+							if (data.percentage <= MIN_CHARGE)
+							{
+								requestStartCharge();
+							}
+						}
+						else if (data.status === 'CHARGING')
+						{
+							if (data.percentage >= MAX_CHARGE)
+							{
+								requestStopCharge();
+							}
 						}
 					}
 				}
