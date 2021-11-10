@@ -7,7 +7,7 @@ const robots_txt = fs.readFileSync('robots.txt');
 const favicon_ico = fs.readFileSync('favicon.ico');
 const PORT = 5017;
 
-let LAST_BATTERY_INFO = {};
+let LAST_BATTERY_INFO = '{}';
 
 http.createServer(app).listen(PORT);
 
@@ -82,23 +82,18 @@ function app(req, res)
 			}
 			else
 			{
-				let body = '';
-				req.on('data', (chunk) =>
+				streamToCallback((err, body) =>
 				{
-					body += chunk;
-					if (body.length > contentLength) req.connection.destroy();
-				});
-				req.on('end', () =>
-				{
-					if (body.length !== contentLength)
+					if (err)
 					{
 						res.writeHead(400);
+						res.end();
 					}
 					else
 					{
 						try
 						{
-							LAST_BATTERY_INFO = JSON.parse(body);
+							LAST_BATTERY_INFO = JSON.stringify(JSON.parse(body));
 							console.log(LAST_BATTERY_INFO);
 							res.writeHead(204);
 							res.end();
@@ -109,27 +104,54 @@ function app(req, res)
 							res.end();
 						}
 					}
-				});
-				req.on('error', () =>
-				{
-					res.writeHead(500);
-					res.end();
-				});
+				}, req, contentLength);
 			}
 		}
 	}
 	else if (url === '/getBatteryInfo')
 	{
-		const json = JSON.stringify(LAST_BATTERY_INFO);
 		res.writeHead(200,
 			{
-				'Content-Length': json.length,
+				'Content-Length': LAST_BATTERY_INFO.length,
 				'Content-Type': 'application/json;'
 			});
-		res.end(json);
+		res.end(LAST_BATTERY_INFO);
 	}
 	else
 	{
 		res.writeHead(404);
 	}
+}
+
+function streamToCallback(callback, stream, length)
+{
+	let body = '';
+	const nLength = Number(length);
+	stream.on('data', (chunk) =>
+	{
+		body += chunk;
+		if (nLength > 0)
+		{
+			if (body.length > nLength)
+			{
+				stream.connection.destroy();
+				callback('Фактический размер данных превышает задекларированный размер');
+			}
+		}
+	});
+	stream.on('end', () =>
+	{
+		if (nLength > 0 && body.length !== nLength)
+		{
+			callback('Данных пришло меньше, чем ожидалось');
+		}
+		else
+		{
+			callback(null, body);
+		}
+	});
+	stream.on('error', (err) =>
+	{
+		callback(err);
+	});
 }

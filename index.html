@@ -20,7 +20,13 @@
 	(function()
 	{
 		'use strict';
+		getBatteryInfo();
 		setInterval(() =>
+		{
+			getBatteryInfo();
+		}, 10000);
+		
+		function getBatteryInfo()
 		{
 			fetch('/getBatteryInfo').then((res) => 
 			{
@@ -44,7 +50,7 @@
 					batInfoTable.append(row);
 				}
 			});
-		}, 10000);
+		}
 	})();
 </script>
 </html>
