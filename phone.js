@@ -6,6 +6,7 @@ let MIN_CHARGE = Number(process.argv[3]);
 
 const SERVER_HOST = 'localhost';
 const SERVER_PORT = 5017;
+const CHECK_BATTERY_STATUS_PERIOD = 30000;
 
 if (isNaN(MAX_CHARGE) || MAX_CHARGE <= 2) MAX_CHARGE = 45;
 if (isNaN(MIN_CHARGE) || MAX_CHARGE - MIN_CHARGE < 2) MIN_CHARGE = MAX_CHARGE - 2;
@@ -60,7 +61,7 @@ function checkBattery()
 				}
 			}
 		}
-		setTimeout(checkBattery, 10000);
+		setTimeout(checkBattery, CHECK_BATTERY_STATUS_PERIOD);
 	});
 }
 
