@@ -1,6 +1,13 @@
 'use strict';
 const http = require('http');
 const exec = require('child_process').exec;
+let MAX_CHARGE = Number(process.argv[2]);
+let MIN_CHARGE = Number(process.argv[3]);
+
+if (isNaN(MAX_CHARGE) || MAX_CHARGE <= 2) MAX_CHARGE = 45;
+if (isNaN(MIN_CHARGE) || MAX_CHARGE - MIN_CHARGE < 2) MIN_CHARGE = MAX_CHARGE - 2;
+
+console.log(`charge from ${MIN_CHARGE} to ${MAX_CHARGE}`);
 
 checkBattery();
 
@@ -18,6 +25,7 @@ function checkBattery()
 			try
 			{
 				data = JSON.parse(stdin);
+				data.time = new Date();
 			}
 			catch (e)
 			{
@@ -25,16 +33,47 @@ function checkBattery()
 			}
 			if (data)
 			{
-				sendRequest(stdin);
+				sendBatteryInfoRequest(JSON.stringify(data));
+				if (!data.percentage || !data.status)
+				{
+					console.log('Not enough data in battery info!');
+				}
+				else
+				{
+					if (data.status === 'NOT_CHARGING')
+					{
+						if (data.percentage <= MIN_CHARGE)
+						{
+							requestStartCharge();
+						}
+					}
+					else if (data.status === 'CHARGING')
+					{
+						if (data.percentage >= MAX_CHARGE)
+						{
+							requestStopCharge();
+						}
+					}
+				}
 			}
 		}
 		setTimeout(checkBattery, 10000);
 	});
 }
 
-function sendRequest(json)
+function requestStartCharge()
 {
-	console.log(json);
+	console.log('Starting charge');
+}
+
+function requestStopCharge()
+{
+	console.log('Stoping charge');
+}
+
+function sendBatteryInfoRequest(json)
+{
+	//console.log(json);
 	const options =
 	{
 		hostname: 'localhost',
