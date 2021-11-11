@@ -20,12 +20,8 @@
 	(function()
 	{
 		'use strict';
+		const PERIOD_TIME = 30000; //Период с которым телефон передаёт данные на сервер.
 		getBatteryInfo();
-		setInterval(() =>
-		{
-			getBatteryInfo();
-		}, 15000);
-
 		function getBatteryInfo()
 		{
 			fetch('/getBatteryInfo').then((res) => 
@@ -38,16 +34,28 @@
 				{
 					batInfoTable.firstChild.remove();
 				}
+				const requestTime = data.time ? new Date(data.time) : new Date();
 				for (let key in data)
 				{
 					const row = document.createElement('tr');
 					const col1 = document.createElement('td');
 					const col2 = document.createElement('td');
 					col1.innerText = key;
-					col2.innerText = key === 'time' ? (new Date(data[key])).toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) : data[key];
+					col2.innerText = key === 'time' ? requestTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) : data[key];
 					row.append(col1);
 					row.append(col2);
 					batInfoTable.append(row);
+				}
+				if (data.time)
+				{
+					const elapsed = Date.now() - requestTime.getTime();
+					let when = PERIOD_TIME - elapsed + 5000;
+					if (when < 0) when = PERIOD_TIME;
+					setTimeout(getBatteryInfo, when)
+				}
+				else
+				{
+					setTimeout(getBatteryInfo, PERIOD_TIME / 4);
 				}
 			});
 		}
