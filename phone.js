@@ -16,10 +16,10 @@ else
 	MAX_CHARGE = Number(firstParam);
 }
 
-const SERVER_HOST = 'localhost';
+const SERVER_HOST = '192.168.43.2';
 const SERVER_PORT = 80;
 const CHECK_BATTERY_STATUS_PERIOD = 30000;
-const TERMUX_COMMAND = 'bash ./termux-battery-status';
+const TERMUX_COMMAND = 'termux-battery-status';
 
 if (isNaN(MAX_CHARGE) || MAX_CHARGE <= 2) MAX_CHARGE = 45;
 if (isNaN(MIN_CHARGE) || MAX_CHARGE - MIN_CHARGE < 2) MIN_CHARGE = MAX_CHARGE - 2;
