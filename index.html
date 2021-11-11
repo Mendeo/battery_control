@@ -49,7 +49,7 @@
 				if (data.time)
 				{
 					const elapsed = Date.now() - requestTime.getTime();
-					let when = PERIOD_TIME - elapsed + 5000;
+					let when = PERIOD_TIME - elapsed + randomInteger(2000, 7000);
 					if (when < 0) when = PERIOD_TIME;
 					setTimeout(getBatteryInfo, when)
 				}
@@ -58,6 +58,11 @@
 					setTimeout(getBatteryInfo, PERIOD_TIME / 4);
 				}
 			});
+		}
+		function randomInteger(min, max)
+		{
+			const rand = min - 0.5 + Math.random() * (max - min + 1);
+			return Math.round(rand);
 		}
 	})();
 </script>
