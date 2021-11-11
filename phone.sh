@@ -1,5 +1,5 @@
 #!/bin/bash
-SERVER="http://localhost:80"
+SERVER="http://192.168.43.2:80"
 DEFAULT_MAX_CHARGE=45
 
 IS_MANUAL=0
@@ -33,7 +33,7 @@ else
 	echo "Charge from $MIN_CHARGE to $MAX_CHARGE"
 fi
 
-batteryData=$(./termux-battery-status)
+batteryData=$(termux-battery-status)
 currentPercent=$(echo "$batteryData" | awk '/percentage/ { sub(",","",$2); print($2) }')
 batteryStatus=$(echo "$batteryData" | awk '/status/ { sub("\",","",$2); sub("\"","",$2); print($2) }')
 
