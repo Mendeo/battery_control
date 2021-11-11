@@ -57,6 +57,9 @@
 				{
 					setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 				}
+			}).catch(() =>
+			{
+				setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 			});
 		}
 		function randomInteger(min, max)
