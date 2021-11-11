@@ -14,6 +14,7 @@ const favicon_ico = fs.readFileSync('favicon.ico');
 const PORT = 80;
 
 let LAST_BATTERY_INFO = '{}';
+let _lastBatteryInfoTime = Date.now();
 
 //GPIO Init
 executeCmd(GPIO_SELECT_CMD, () =>
@@ -120,6 +121,9 @@ function app(req, res)
 						{
 							const obj = JSON.parse(body);
 							obj.time = new Date();
+							const intTime = obj.time.getTime();
+							obj.period = intTime - _lastBatteryInfoTime;
+							_lastBatteryInfoTime = intTime;
 							LAST_BATTERY_INFO = JSON.stringify(obj);
 							res.writeHead(204);
 							res.end();

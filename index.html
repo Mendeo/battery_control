@@ -20,10 +20,10 @@
 	(function()
 	{
 		'use strict';
-		const PERIOD_TIME = 30000; //Период с которым телефон передаёт данные на сервер.
 		getBatteryInfo();
 		function getBatteryInfo()
 		{
+			const DEFAULT_PERIOD = 15000;
 			fetch('/getBatteryInfo').then((res) => 
 			{
 				if (res.ok) return res.json();
@@ -46,16 +46,16 @@
 					row.append(col2);
 					batInfoTable.append(row);
 				}
-				if (data.time)
+				if (data.time && data.period)
 				{
 					const elapsed = Date.now() - requestTime.getTime();
-					let when = PERIOD_TIME - elapsed + randomInteger(2000, 7000);
-					if (when < 0) when = PERIOD_TIME;
+					let when = Number(data.period) - elapsed + randomInteger(2000, 7000);
+					if (when < 0) when = Number(data.period);
 					setTimeout(getBatteryInfo, when)
 				}
 				else
 				{
-					setTimeout(getBatteryInfo, PERIOD_TIME / 4);
+					setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 				}
 			});
 		}
