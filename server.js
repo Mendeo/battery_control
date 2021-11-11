@@ -11,7 +11,7 @@ const GPIO_LOGICAL_0_CMD = 'echo test'; //'echo 0 > /sys/class/gpio/gpio17/value
 const index_html = fs.readFileSync('index.html');
 const robots_txt = fs.readFileSync('robots.txt');
 const favicon_ico = fs.readFileSync('favicon.ico');
-const PORT = 5017;
+const PORT = 80;
 
 let LAST_BATTERY_INFO = '{}';
 
@@ -118,7 +118,9 @@ function app(req, res)
 						//console.log(body);
 						try
 						{
-							LAST_BATTERY_INFO = JSON.stringify(JSON.parse(body));
+							const obj = JSON.parse(body);
+							obj.time = new Date();
+							LAST_BATTERY_INFO = JSON.stringify(obj);
 							res.writeHead(204);
 							res.end();
 						}

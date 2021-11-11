@@ -17,7 +17,7 @@ else
 }
 
 const SERVER_HOST = 'localhost';
-const SERVER_PORT = 5017;
+const SERVER_PORT = 80;
 const CHECK_BATTERY_STATUS_PERIOD = 30000;
 const TERMUX_COMMAND = 'testTermux.bat'; //termux-battery-status
 
@@ -37,21 +37,11 @@ checkBattery();
 
 function checkBattery()
 {
-	executeCmd(TERMUX_COMMAND, (stdin) =>
+	executeCmd(TERMUX_COMMAND, (data) =>
 	{
-		let data = null;
-		try
-		{
-			data = JSON.parse(stdin);
-			data.time = new Date();
-		}
-		catch (e)
-		{
-			console.log(e.message);
-		}
 		if (data)
 		{
-			sendBatteryInfoRequest(JSON.stringify(data));
+			sendBatteryInfoRequest(data);
 			if (!IS_MANUAL)
 			{
 				if (!data.percentage || !data.status)
