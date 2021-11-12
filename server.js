@@ -84,6 +84,7 @@ function app(req, res)
 	}
 	else if (url === '/setBatteryInfo')
 	{
+		//console.log(req.headers);
 		if (req.method !== 'POST')
 		{
 			res.writeHead(400);
