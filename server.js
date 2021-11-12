@@ -83,10 +83,10 @@ http.createServer(app).listen(PORT);
 
 function app(req, res)
 {
-	let now = new Date();
-	console.log('*******' + now.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) + '*******');
+	//let now = new Date();
+	//console.log('*******' + now.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) + '*******');
 	const url = req.url.split('?')[0];
-	console.log(url);
+	//console.log(url);
 	//console.log(req.headers);
 	if (url === '/')
 	{
