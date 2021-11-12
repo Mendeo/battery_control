@@ -57,6 +57,7 @@ fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
 	else
 	{
 		console.log('GPIO has already been initialized');
+		_isGPIOInitialized = true;
 	}
 });
 
