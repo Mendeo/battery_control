@@ -67,7 +67,8 @@ function app(req, res)
 		}, (err) =>
 		{
 			res.writeHead(500);
-			res.end(err);
+			console.log(err.message);
+			res.end(err.message);
 		});
 	}
 	else if (url === '/stopCharge')
@@ -79,7 +80,8 @@ function app(req, res)
 		}, (err) =>
 		{
 			res.writeHead(500);
-			res.end(err);
+			console.log(err.message);
+			res.end(err.message);
 		});
 	}
 	else if (url === '/setBatteryInfo')
@@ -181,7 +183,7 @@ function streamToCallback(callback, stream, length)
 			if (body.length > nLength)
 			{
 				stream.connection.destroy();
-				callback('Фактический размер данных превышает задекларированный размер');
+				callback('The actual data size exceeds the declared size');
 			}
 		}
 	});
@@ -189,7 +191,7 @@ function streamToCallback(callback, stream, length)
 	{
 		if (nLength > 0 && body.length !== nLength)
 		{
-			callback('Данных пришло меньше, чем ожидалось');
+			callback('There is less data than expected');
 		}
 		else
 		{
@@ -198,7 +200,7 @@ function streamToCallback(callback, stream, length)
 	});
 	stream.on('error', (err) =>
 	{
-		callback(err);
+		callback(err.message);
 	});
 }
 
