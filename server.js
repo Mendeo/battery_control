@@ -64,10 +64,10 @@ function app(req, res)
 		{
 			res.writeHead(204);
 			res.end();
-		}, () =>
+		}, (err) =>
 		{
 			res.writeHead(500);
-			res.end();
+			res.end(err);
 		});
 	}
 	else if (url === '/stopCharge')
@@ -76,10 +76,10 @@ function app(req, res)
 		{
 			res.writeHead(204);
 			res.end();
-		}, () =>
+		}, (err) =>
 		{
 			res.writeHead(500);
-			res.end();
+			res.end(err);
 		});
 	}
 	else if (url === '/setBatteryInfo')
@@ -88,17 +88,23 @@ function app(req, res)
 		if (req.method !== 'POST')
 		{
 			res.writeHead(400);
-			res.end();
+			const msg = 'POST method required';
+			console.log(msg);
+			res.end(msg);
 		}
 		else if (req.headers['content-type'] !== 'application/json')
 		{
 			res.writeHead(400);
-			res.end();
+			const msg = 'Content-type header with "application/json" required';
+			console.log(msg);
+			res.end(msg);
 		}
 		else if (!req.headers['content-length'])
 		{
 			res.writeHead(411);
-			res.end();
+			const msg = 'Content-length header required';
+			console.log(msg);
+			res.end(msg);
 		}
 		else
 		{
@@ -106,7 +112,9 @@ function app(req, res)
 			if (contentLength > 10000)
 			{
 				res.writeHead(400);
-				res.end();
+				const msg = 'Content length is too big';
+				console.log(msg);
+				res.end(msg);
 			}
 			else
 			{
@@ -115,7 +123,8 @@ function app(req, res)
 					if (err)
 					{
 						res.writeHead(400);
-						res.end();
+						console.log(err);
+						res.end(err);
 					}
 					else
 					{
@@ -126,6 +135,7 @@ function app(req, res)
 							obj.time = new Date();
 							const intTime = obj.time.getTime();
 							obj.period = intTime - _lastBatteryInfoTime;
+							if (obj.period <= 2000) obj.period = 2000;
 							_lastBatteryInfoTime = intTime;
 							LAST_BATTERY_INFO = JSON.stringify(obj);
 							res.writeHead(204);
@@ -134,7 +144,9 @@ function app(req, res)
 						catch (e)
 						{
 							res.writeHead(400);
-							res.end();
+							const msg = 'Error while json parsing';
+							console.log(msg);
+							res.end(msg);
 						}
 					}
 				}, req, contentLength);
@@ -153,6 +165,7 @@ function app(req, res)
 	else
 	{
 		res.writeHead(404);
+		res.end('The requested page was not found');
 	}
 }
 
