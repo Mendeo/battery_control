@@ -266,20 +266,3 @@ function streamToCallback(callback, stream, length)
 		callback(err.message);
 	});
 }
-
-function executeCmd(cmd, onSuccess, onError)
-{
-	exec(cmd, (err, stdin, stderr) =>
-	{
-		if (err || stderr)
-		{
-			//if (err) console.log(err);
-			if (stderr) console.log('cmd out: ' + stderr);
-			if (onError) onError(err, stderr);
-		}
-		else
-		{
-			if (onSuccess) onSuccess(stdin);
-		}
-	});
-}
