@@ -2,9 +2,10 @@
 const http = require('http');
 const fs = require('fs');
 
+const GPIO_NUMBER = 17;
 const GPIO_SELECT_FILE = '/sys/class/gpio/export';
-const GPIO_SET_DIRECTION_FILE = '/sys/class/gpio/gpio17/direction';
-const GPIO_VALUE_FILE = '/sys/class/gpio/gpio17/value';
+const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
+const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
 
 const index_html = fs.readFileSync('index.html');
 const robots_txt = fs.readFileSync('robots.txt');
@@ -20,7 +21,7 @@ fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
 {
 	if (err)
 	{
-		fs.writeFile(GPIO_SELECT_FILE, '17', (err) =>
+		fs.writeFile(GPIO_SELECT_FILE, GPIO_NUMBER.toString(), (err) =>
 		{
 			if (err)
 			{
