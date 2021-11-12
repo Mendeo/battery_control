@@ -73,7 +73,7 @@ function setLogicalValueToGPIO(value, callback)
 	}
 	else
 	{
-		callback('GPIO was not initialized');
+		callback(new Error('GPIO was not initialized'));
 	}
 }
 
