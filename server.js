@@ -18,7 +18,7 @@ let _lastBatteryInfoTime = Date.now();
 
 //GPIO Init
 let _isGPIOInitialized = false;
-fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
+fs.write(GPIO_VALUE_FILE, '0', (err) =>
 {
 	if (err)
 	{
@@ -30,7 +30,7 @@ fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
 			}
 			else
 			{
-				fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
+				fs.write(GPIO_SET_DIRECTION_FILE, 'out', (err) =>
 				{
 					if (err)
 					{
@@ -38,7 +38,7 @@ fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
 					}
 					else
 					{
-						fs.access(GPIO_VALUE_FILE, fs.constants.W_OK, (err) =>
+						fs.write(GPIO_VALUE_FILE, '0', (err) =>
 						{
 							if (err)
 							{
