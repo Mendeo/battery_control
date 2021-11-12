@@ -1,12 +1,10 @@
 'use strict';
 const http = require('http');
 const fs = require('fs');
-const { exec } = require('child_process');
 
-const GPIO_SELECT_CMD = 'echo 17 > /sys/class/gpio/export';
-const GPIO_SET_DIRECTION_CMD = 'echo out > /sys/class/gpio/gpio17/direction';
-const GPIO_LOGICAL_1_CMD = 'echo 1 > /sys/class/gpio/gpio17/value';
-const GPIO_LOGICAL_0_CMD = 'echo 0 > /sys/class/gpio/gpio17/value';
+const GPIO_SELECT_FILE = '/sys/class/gpio/export';
+const GPIO_SET_DIRECTION_FILE = '/sys/class/gpio/gpio17/direction';
+const GPIO_VALUE_FILE = '/sys/class/gpio/gpio17/value';
 
 const index_html = fs.readFileSync('index.html');
 const robots_txt = fs.readFileSync('robots.txt');
@@ -17,10 +15,66 @@ let LAST_BATTERY_INFO = '{}';
 let _lastBatteryInfoTime = Date.now();
 
 //GPIO Init
-executeCmd(GPIO_SELECT_CMD, () =>
+let _isGPIOInitialized = false;
+fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
 {
-	executeCmd(GPIO_SET_DIRECTION_CMD);
+	if (err)
+	{
+		fs.writeFile(GPIO_SELECT_FILE, '17', (err) =>
+		{
+			if (err)
+			{
+				gpioInitializationError(err);
+			}
+			else
+			{
+				fs.access(GPIO_SET_DIRECTION_FILE, fs.constants.W_OK, (err) =>
+				{
+					if (err)
+					{
+						gpioInitializationError(err);
+					}
+					else
+					{
+						fs.access(GPIO_VALUE_FILE, fs.constants.W_OK, (err) =>
+						{
+							if (err)
+							{
+								gpioInitializationError(err);
+							}
+							else
+							{
+								console.log('GPIO has been initialized successfully');
+								_isGPIOInitialized = true;
+							}
+						});
+					}
+				});
+			}
+		});
+	}
+	else
+	{
+		console.log('GPIO has already been initialized');
+	}
 });
+
+function gpioInitializationError(err)
+{
+	console.log('Warning! GPIO has not been initialized: ' + err.message);
+}
+
+function setLogicalValueToGPIO(value, callback)
+{
+	if (_isGPIOInitialized)
+	{
+		fs.writeFile(GPIO_VALUE_FILE, value ? '1' : '0', callback);
+	}
+	else
+	{
+		callback('GPIO was not initialized');
+	}
+}
 
 http.createServer(app).listen(PORT);
 
@@ -60,28 +114,36 @@ function app(req, res)
 	}
 	else if (url === '/startCharge')
 	{
-		executeCmd(GPIO_LOGICAL_1_CMD, () =>
+		setLogicalValueToGPIO(true, (err) =>
 		{
-			res.writeHead(204);
-			res.end();
-		}, (err) =>
-		{
-			res.writeHead(500);
-			console.log(err.message);
-			res.end(err.message);
+			if (err)
+			{
+				res.writeHead(500);
+				console.log(err.message);
+				res.end(err.message);
+			}
+			else
+			{
+				res.writeHead(204);
+				res.end();
+			}
 		});
 	}
 	else if (url === '/stopCharge')
 	{
-		executeCmd(GPIO_LOGICAL_0_CMD, () =>
+		setLogicalValueToGPIO(false, (err) =>
 		{
-			res.writeHead(204);
-			res.end();
-		}, (err) =>
-		{
-			res.writeHead(500);
-			console.log(err.message);
-			res.end(err.message);
+			if (err)
+			{
+				res.writeHead(500);
+				console.log(err.message);
+				res.end(err.message);
+			}
+			else
+			{
+				res.writeHead(204);
+				res.end();
+			}
 		});
 	}
 	else if (url === '/setBatteryInfo')
