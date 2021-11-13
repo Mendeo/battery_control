@@ -7,7 +7,7 @@ CHECK_BATTERY_STATUS_PERIOD=30 #Секунды
 
 getBatteryData()
 {
-	if [ IS_STARTS_FROM_TERMUX -eq 1 ]
+	if [ $IS_STARTS_FROM_TERMUX -eq 1 ]
 	then
 		#Получаем данные о состоянии батареии, если запускаем из Termux
 		batteryData=$(termux-battery-status)
