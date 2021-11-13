@@ -1,11 +1,35 @@
 #!/bin/sh
-#SERVER="http://192.168.43.2:80"
-SERVER="http://192.168.2.90:80"
+IS_STARTS_FROM_TERMUX=1
+SERVER="http://192.168.43.2:80"
+#SERVER="http://192.168.2.90:80"
 DEFAULT_MAX_CHARGE=45
 CHECK_BATTERY_STATUS_PERIOD=30 #Секунды
 
-NOT_CHARGING_STATUS="Not charging" #NOT_CHARGING в termux-battery-status
-CHARGING_STATUS="Charging" #CHARGING в termux-battery-status
+getBatteryData()
+{
+	if [ IS_STARTS_FROM_TERMUX -eq 1 ]
+	then
+		#Получаем данные о состоянии батареии, если запускаем из Termux
+		batteryData=$(termux-battery-status)
+		currentPercent=$(echo "$batteryData" | awk '/percentage/ { sub(",","",$2); print($2) }')
+		batteryStatus=$(echo "$batteryData" | awk '/status/ { sub("\",","",$2); sub("\"","",$2); print($2) }')
+		NOT_CHARGING_STATUS="NOT_CHARGING"
+		CHARGING_STATUS="CHARGING"
+	else
+		#Получаем данные о состоянии батареии по файлам устройств из /sys (запуск из обычного терминала из под рут)
+		#Обязательные переменные
+		currentPercent=$(cat /sys/class/power_supply/battery/capacity) #Обязательно нужно получить текущий процент заряда батареии
+		batteryStatus=$(cat /sys/class/power_supply/battery/status) #Обязательно нужно получить информацию о том, заряжается батарея или нет
+		NOT_CHARGING_STATUS="Not charging"
+		CHARGING_STATUS="Charging"
+		#Необязательные переменные, просто для отображения информации в браузере
+		health=$(cat /sys/class/power_supply/battery/health)
+		voltage=$(cat /sys/class/power_supply/battery/batt_vol)
+		temperature=$(($(cat /sys/class/power_supply/battery/batt_temp) / 10))
+		#Создаём итоговый JSON, который отправится на сервер
+		batteryData="{ \"percent\": $currentPercent, \"status\": \"$batteryStatus\", \"health\": \"$health\", \"voltage\": $voltage, \"temperature\": $temperature }"
+	fi
+}
 
 #Определеяем в каком диапазоне держать заряд или вообще не управлять зарядом
 IS_MANUAL=0
@@ -39,36 +63,27 @@ else
 	echo "Charge from $MIN_CHARGE to $MAX_CHARGE"
 fi
 
+requestStartCharge()
+{
+	echo "Starting charge"
+	#curl $SERVER"/startCharge"
+	wget -q -O /dev/null $SERVER"/startCharge"
+}
+requestStopCharge()
+{
+	echo "Stoping charge"
+	#curl $SERVER"/stopCharge"
+	wget -q -O /dev/null $SERVER"/stopCharge"
+}
+sendBatteryInfoRequest()
+{
+	#curl -d "$batteryData" -H "Content-Type: application/json" $SERVER"/setBatteryInfo"
+	wget -q -O /dev/null --post-data="$batteryData" --header="Content-Type: application/json" $SERVER"/setBatteryInfo"
+}
+
 while [ 1 ]
 do
-	#Определение параметров батареи, если запускаем из Termux
-	# batteryData=$(termux-battery-status)
-	# currentPercent=$(echo "$batteryData" | awk '/percentage/ { sub(",","",$2); print($2) }')
-	# batteryStatus=$(echo "$batteryData" | awk '/status/ { sub("\",","",$2); sub("\"","",$2); print($2) }')
-
-	#Определение параметров батареии по файлам устройств из /sys
-	currentPercent=$(cat /sys/class/power_supply/battery/capacity)
-	batteryStatus=$(cat /sys/class/power_supply/battery/status)
-
-	batteryData="{ \"percent\": $currentPercent, \"status\": \"$batteryStatus\", \"health\": \"$(cat /sys/class/power_supply/battery/health)\", \"voltage\": $(cat /sys/class/power_supply/battery/batt_vol), \"temperature\": $(($(cat /sys/class/power_supply/battery/batt_temp) / 10)) }"
-
-	requestStartCharge()
-	{
-		echo "Starting charge"
-		#curl $SERVER"/startCharge"
-		wget -q -O /dev/null $SERVER"/startCharge"
-	}
-	requestStopCharge()
-	{
-		echo "Stoping charge"
-		#curl $SERVER"/stopCharge"
-		wget -q -O /dev/null $SERVER"/stopCharge"
-	}
-	sendBatteryInfoRequest()
-	{
-		#curl -d "$batteryData" -H "Content-Type: application/json" $SERVER"/setBatteryInfo"
-		wget -q -O /dev/null --post-data="$batteryData" --header="Content-Type: application/json" $SERVER"/setBatteryInfo"
-	}
+	getBatteryData
 	sendBatteryInfoRequest
 	if [ $IS_MANUAL -eq 0 ]
 	then
