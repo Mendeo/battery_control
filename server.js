@@ -234,11 +234,6 @@ function app(req, res)
 	}
 	else if (url === '/getBatteryInfo')
 	{
-		res.writeHead(200,
-			{
-				'Content-Length': LAST_BATTERY_INFO.length,
-				'Content-Type': 'application/json;'
-			});
 		if (_isRPItemp)
 		{
 			fs.readFile(RPI_TEMPERATURE_FILE, (err, rawTemp) =>
@@ -251,13 +246,22 @@ function app(req, res)
 				else
 				{
 					LAST_BATTERY_INFO.RPI_temperature = (Number(rawTemp) / 1000) % 100;
-					res.end(JSON.stringify(LAST_BATTERY_INFO));
+					send(JSON.stringify(LAST_BATTERY_INFO));
 				}
 			});
 		}
 		else
 		{
-			res.end(JSON.stringify(LAST_BATTERY_INFO));
+			send(JSON.stringify(LAST_BATTERY_INFO));
+		}
+		function send(json)
+		{
+			res.writeHead(200,
+				{
+					'Content-Length': json.length,
+					'Content-Type': 'application/json;'
+				});
+			res.end(json);
 		}
 	}
 	else
