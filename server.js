@@ -14,7 +14,7 @@ const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
 const favicon_ico = fs.readFileSync(path.join(__dirname, 'favicon.ico'));
 const PORT = 80;
 
-let LAST_BATTERY_INFO = '{}';
+let LAST_BATTERY_INFO = {};
 let _lastBatteryInfoTime = Date.now();
 
 //RPI Temperature test
