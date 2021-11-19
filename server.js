@@ -245,7 +245,7 @@ function app(req, res)
 				}
 				else
 				{
-					LAST_BATTERY_INFO.RPI_temperature = (Number(rawTemp) / 1000) % 100;
+					LAST_BATTERY_INFO.RPI_temperature = (Number(rawTemp) / 1000);
 					send(JSON.stringify(LAST_BATTERY_INFO));
 				}
 			});
