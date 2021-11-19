@@ -7,6 +7,7 @@ const GPIO_NUMBER = 17;
 const GPIO_SELECT_FILE = '/sys/class/gpio/export';
 const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
 const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
+const RPI_TEMPERATURE_FILE = '/sys/class/thermal/thermal_zone0/temp';
 
 const index_html = fs.readFileSync(path.join(__dirname, 'index.html'));
 const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
@@ -15,6 +16,18 @@ const PORT = 80;
 
 let LAST_BATTERY_INFO = '{}';
 let _lastBatteryInfoTime = Date.now();
+
+//RPI Temperature test
+let _isRPItemp = true;
+const RPItemperatureErrorMessage = 'Warning! RPI Temperature not available';
+fs.access(RPI_TEMPERATURE_FILE, fs.constants.R_OK, (err) =>
+{
+	if (err)
+	{
+		console.log(RPItemperatureErrorMessage);
+		_isRPItemp = false;
+	}
+});
 
 //GPIO Init
 let _isGPIOInitialized = false;
@@ -198,13 +211,12 @@ function app(req, res)
 						//console.log(body);
 						try
 						{
-							const obj = JSON.parse(body);
-							obj.time = new Date();
-							const intTime = obj.time.getTime();
-							obj.period = intTime - _lastBatteryInfoTime;
-							if (obj.period <= 2000) obj.period = 2000;
+							LAST_BATTERY_INFO = JSON.parse(body);
+							LAST_BATTERY_INFO.time = new Date();
+							const intTime = LAST_BATTERY_INFO.time.getTime();
+							LAST_BATTERY_INFO.period = intTime - _lastBatteryInfoTime;
+							if (LAST_BATTERY_INFO.period <= 2000) LAST_BATTERY_INFO.period = 2000;
 							_lastBatteryInfoTime = intTime;
-							LAST_BATTERY_INFO = JSON.stringify(obj);
 							res.writeHead(204);
 							res.end();
 						}
@@ -227,7 +239,26 @@ function app(req, res)
 				'Content-Length': LAST_BATTERY_INFO.length,
 				'Content-Type': 'application/json;'
 			});
-		res.end(LAST_BATTERY_INFO);
+		if (_isRPItemp)
+		{
+			fs.readFile(RPI_TEMPERATURE_FILE, (err, rawTemp) =>
+			{
+				if (err)
+				{
+					console.log(RPItemperatureErrorMessage);
+					_isRPItemp = false;
+				}
+				else
+				{
+					LAST_BATTERY_INFO.RPI_temperature = (Number(rawTemp) / 1000) % 100;
+					res.end(JSON.stringify(LAST_BATTERY_INFO));
+				}
+			});
+		}
+		else
+		{
+			res.end(JSON.stringify(LAST_BATTERY_INFO));
+		}
 	}
 	else
 	{
