@@ -10,7 +10,7 @@ const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
 const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
 
 const RPI_TEMPERATURE_FILE = '/sys/class/thermal/thermal_zone0/temp';
-const TRAFFIC_COMMAND = 'echo Hello World';
+const TRAFFIC_COMMAND = 'wg show | awk -F \': \' \'/transfer/ {print ($2);}\'';
 
 const index_html = fs.readFileSync(path.join(__dirname, 'index.html'));
 const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
