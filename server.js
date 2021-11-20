@@ -2,32 +2,23 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const GPIO_NUMBER = 17;
 const GPIO_SELECT_FILE = '/sys/class/gpio/export';
 const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
 const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
+
 const RPI_TEMPERATURE_FILE = '/sys/class/thermal/thermal_zone0/temp';
+const TRAFFIC_COMMAND = 'echo Hello World';
 
 const index_html = fs.readFileSync(path.join(__dirname, 'index.html'));
 const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
 const favicon_ico = fs.readFileSync(path.join(__dirname, 'favicon.ico'));
 const PORT = 80;
 
-let LAST_BATTERY_INFO = {};
+let LAST_BATTERY_INFO = (Buffer.from('{}')).toString('base64');
 let _lastBatteryInfoTime = Date.now();
-
-//RPI Temperature test
-let _isRPItemp = true;
-const RPItemperatureErrorMessage = 'Warning! RPI Temperature not available';
-fs.access(RPI_TEMPERATURE_FILE, fs.constants.R_OK, (err) =>
-{
-	if (err)
-	{
-		console.log(RPItemperatureErrorMessage);
-		_isRPItemp = false;
-	}
-});
 
 //GPIO Init
 let _isGPIOInitialized = false;
@@ -211,14 +202,15 @@ function app(req, res)
 						//console.log(body);
 						try
 						{
-							LAST_BATTERY_INFO = JSON.parse(body);
-							LAST_BATTERY_INFO.time = new Date();
-							const intTime = LAST_BATTERY_INFO.time.getTime();
-							LAST_BATTERY_INFO.period = intTime - _lastBatteryInfoTime;
-							if (LAST_BATTERY_INFO.period <= 2000) LAST_BATTERY_INFO.period = 2000;
+							const obj = JSON.parse(body);
+							obj.lastInfoTime = new Date();
+							const intTime = obj.lastInfoTime.getTime();
+							obj.period = intTime - _lastBatteryInfoTime;
+							if (obj.period <= 2000) obj.period = 2000;
 							_lastBatteryInfoTime = intTime;
 							res.writeHead(204);
 							res.end();
+							LAST_BATTERY_INFO = (Buffer.from(JSON.stringify(obj))).toString('base64');
 						}
 						catch (e)
 						{
@@ -232,42 +224,99 @@ function app(req, res)
 			}
 		}
 	}
-	else if (url === '/getBatteryInfo')
+	else if (url === '/getStatus')
 	{
-		if (_isRPItemp)
+		const dataToSend = { phoneData: LAST_BATTERY_INFO };
+		getServerData((serverData) =>
 		{
-			fs.readFile(RPI_TEMPERATURE_FILE, (err, rawTemp) =>
-			{
-				if (err)
-				{
-					console.log(RPItemperatureErrorMessage);
-					_isRPItemp = false;
-				}
-				else
-				{
-					LAST_BATTERY_INFO.RPI_temperature = (Number(rawTemp) / 1000);
-					send(JSON.stringify(LAST_BATTERY_INFO));
-				}
-			});
-		}
-		else
-		{
-			send(JSON.stringify(LAST_BATTERY_INFO));
-		}
-		function send(json)
-		{
+			if (serverData !== null) dataToSend.serverData = serverData;
+			const json = JSON.stringify(dataToSend);
+			console.log(dataToSend);
 			res.writeHead(200,
 				{
 					'Content-Length': json.length,
 					'Content-Type': 'application/json;'
 				});
 			res.end(json);
-		}
+		});
 	}
 	else
 	{
 		res.writeHead(404);
 		res.end('The requested page was not found');
+	}
+}
+
+function getServerData(callback)
+{
+	const serverData = {};
+	getRPITemperature((data) =>
+	{
+		if (data !== null) serverData.RPI_Temperature = data;
+		getTraffic((data) =>
+		{
+			if (data !== null) serverData.Traffic = data;
+			endOfChain();
+		});
+	});
+	function endOfChain()
+	{
+		if (Object.keys(serverData).length === 0)
+		{
+			callback(null);
+		}
+		else
+		{
+			callback((Buffer.from(JSON.stringify(serverData))).toString('base64'));
+		}
+	}
+}
+
+function getRPITemperature(callback)
+{
+	if (getRPITemperature.notAvailable)
+	{
+		callback(null);
+	}
+	else
+	{
+		fs.readFile(RPI_TEMPERATURE_FILE, (err, rawTemp) =>
+		{
+			if (err)
+			{
+				console.log('Warning! RPI Temperature is not available: ' + err.message);
+				getRPITemperature.notAvailable = true;
+				callback(null);
+			}
+			else
+			{
+				callback(Number(rawTemp) / 1000);
+			}
+		});
+	}
+}
+
+function getTraffic(callback)
+{
+	if (getTraffic.notAvailable)
+	{
+		callback(null);
+	}
+	else
+	{
+		exec(TRAFFIC_COMMAND, (err, stdout, stderr) =>
+		{
+			if (err || stderr)
+			{
+				console.log('Warning! Traffic data is not available' + err.message);
+				getTraffic.notAvailable = true;
+				callback(null);
+			}
+			else
+			{
+				callback(stdout);
+			}
+		});
 	}
 }
 

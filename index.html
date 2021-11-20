@@ -13,8 +13,10 @@
 	<br>
 	<a href="/stopCharge">Остановить зарядку</a>
 	<br>
-	<h2>Последние известные параметры</h2>
-	<table id="batInfo"></table>
+	<h2>Последние известные параметры телефона</h2>
+	<table id="batteryInfo"></table>
+	<h2>Текущие данные от сервера</h2>
+	<table id="serverInfo"></table>
 </body>
 <script type="text/javascript">
 	(function()
@@ -24,48 +26,75 @@
 		function getBatteryInfo()
 		{
 			const DEFAULT_PERIOD = 15000;
-			fetch('/getBatteryInfo').then((res) => 
+			fetch('/getStatus').then((res) => 
 			{
 				if (res.ok) return res.json();
 			}).then((data) =>
 			{
-				const batInfoTable = document.getElementById('batInfo');
-				while (batInfoTable.firstChild)
+				let whenNextRequest = DEFAULT_PERIOD;
+
+				const batteryInfoTable = document.getElementById('batteryInfo');
+				const phoneData = parseServerInfo(data.phoneData);
+				if (phoneData)
 				{
-					batInfoTable.firstChild.remove();
+					if (phoneData.lastInfoTime && phoneData.period)
+					{
+						const lastPhoneDataTime = new Date(phoneData.lastInfoTime);
+						phoneData.lastInfoTime = requestTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+						const elapsed = Date.now() - lastPhoneDataTime.getTime();
+						let whenNextRequest = Number(phoneData.period) - elapsed + randomInteger(2000, 7000);
+						if (whenNextRequest < 0) whenNextRequest = Number(phoneData.period);
+					}
+					showObjectAsTable(phoneData, batteryInfoTable);
 				}
-				const requestTime = data.time ? new Date(data.time) : new Date();
-				for (let key in data)
+				const serverData = parseServerInfo(data.serverData);
+				const serverInfoTable = document.getElementById('serverInfo');
+				if (serverData)
 				{
-					const row = document.createElement('tr');
-					const col1 = document.createElement('td');
-					const col2 = document.createElement('td');
-					col1.innerText = key;
-					col2.innerText = key === 'time' ? requestTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' }) : data[key];
-					row.append(col1);
-					row.append(col2);
-					batInfoTable.append(row);
+					showObjectAsTable(serverData, serverInfoTable);
 				}
-				if (data.time && data.period)
-				{
-					const elapsed = Date.now() - requestTime.getTime();
-					let when = Number(data.period) - elapsed + randomInteger(2000, 7000);
-					if (when < 0) when = Number(data.period);
-					setTimeout(getBatteryInfo, when)
-				}
-				else
-				{
-					setTimeout(getBatteryInfo, DEFAULT_PERIOD);
-				}
+				setTimeout(getBatteryInfo, whenNextRequest);
 			}).catch(() =>
 			{
 				setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 			});
 		}
+		function showObjectAsTable(obj, tableElement)
+		{
+			//Удаляем всю информацию из таблицы
+			while (tableElement.firstChild)
+			{
+				tableElement.firstChild.remove();
+			}
+			for (let key in obj)
+			{
+				const row = document.createElement('tr');
+				const col1 = document.createElement('td');
+				const col2 = document.createElement('td');
+				col1.innerText = key;
+				col2.innerText = data[key];
+				row.append(col1, col2);
+				tableElement.append(row);
+			}
+		}
 		function randomInteger(min, max)
 		{
 			const rand = min - 0.5 + Math.random() * (max - min + 1);
 			return Math.round(rand);
+		}
+		function parseServerInfo(base64Data)
+		{
+			if (base64Data)
+			{
+				try
+				{
+					return JSON.parse(atob(base64Data));
+				}
+				catch
+				{
+					return null;
+				}
+			}
 		}
 	})();
 </script>
