@@ -231,7 +231,6 @@ function app(req, res)
 		{
 			if (serverData !== null) dataToSend.serverData = serverData;
 			const json = JSON.stringify(dataToSend);
-			console.log(dataToSend);
 			res.writeHead(200,
 				{
 					'Content-Length': json.length,
