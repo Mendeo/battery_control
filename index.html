@@ -40,7 +40,7 @@
 					if (phoneData.lastInfoTime && phoneData.period)
 					{
 						const lastPhoneDataTime = new Date(phoneData.lastInfoTime);
-						phoneData.lastInfoTime = requestTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+						phoneData.lastInfoTime = lastPhoneDataTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
 						const elapsed = Date.now() - lastPhoneDataTime.getTime();
 						let whenNextRequest = Number(phoneData.period) - elapsed + randomInteger(2000, 7000);
 						if (whenNextRequest < 0) whenNextRequest = Number(phoneData.period);
