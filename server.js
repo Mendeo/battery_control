@@ -9,7 +9,7 @@ const GPIO_SELECT_FILE = '/sys/class/gpio/export';
 const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
 const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
 
-const RPI_TEMPERATURE_FILE = '/sys/class/thermal/thermal_zone0/temp';
+const RPI_TEMPERATURE_COMMAND = 'vcgencmd measure_temp'; //'/sys/class/thermal/thermal_zone0/temp';
 const TRAFFIC_COMMAND = 'wg show | awk -F \': \' \'/transfer/ {print ($2);}\'';
 
 const index_html = fs.readFileSync(path.join(__dirname, 'index.html'));
@@ -279,6 +279,22 @@ function getRPITemperature(callback)
 	}
 	else
 	{
+		//При помощи команды
+		exec(RPI_TEMPERATURE_COMMAND, (err, stdout, stderr) =>
+		{
+			if (err || stderr)
+			{
+				console.log('Warning! RPI Temperature is not available: ' + err.message);
+				getRPITemperature.notAvailable = true;
+				callback(null);
+			}
+			else
+			{
+				callback(stdout.split('=')[1]);
+			}
+		});
+		//Чтение из файла
+		/*
 		fs.readFile(RPI_TEMPERATURE_FILE, (err, rawTemp) =>
 		{
 			if (err)
@@ -292,6 +308,7 @@ function getRPITemperature(callback)
 				callback(Number(rawTemp) / 1000);
 			}
 		});
+		*/
 	}
 }
 
