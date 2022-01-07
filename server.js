@@ -17,6 +17,8 @@ const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
 const favicon_ico = fs.readFileSync(path.join(__dirname, 'favicon.ico'));
 const PORT = 80;
 
+const START_TIME = new Date();
+
 let LAST_BATTERY_INFO = (Buffer.from('{}')).toString('base64');
 let _lastBatteryInfoTime = Date.now();
 
@@ -68,7 +70,7 @@ fs.writeFile(GPIO_VALUE_FILE, '0', (err) =>
 
 function gpioInitializationError(err)
 {
-	console.log('Warning! GPIO has not been initialized: ' + err.message);
+	console.log('Warning! GPIO has not been initialized: ' + err?.message);
 }
 
 function setLogicalValueToGPIO(value, callback)
@@ -126,8 +128,8 @@ function app(req, res)
 			if (err)
 			{
 				res.writeHead(500);
-				console.log(err.message);
-				res.end(err.message);
+				console.log(err?.message);
+				res.end(err?.message);
 			}
 			else
 			{
@@ -143,8 +145,8 @@ function app(req, res)
 			if (err)
 			{
 				res.writeHead(500);
-				console.log(err.message);
-				res.end(err.message);
+				console.log(err?.message);
+				res.end(err?.message);
 			}
 			else
 			{
@@ -271,6 +273,11 @@ function getServerData(callback)
 	}
 }
 
+function getServetStartTime(callback)
+{
+	callback(START_TIME);
+}
+
 function getRPITemperature(callback)
 {
 	if (getRPITemperature.notAvailable)
@@ -284,7 +291,7 @@ function getRPITemperature(callback)
 		{
 			if (err || stderr)
 			{
-				console.log('Warning! RPI Temperature is not available: ' + err.message);
+				console.log('Warning! RPI Temperature is not available: ' + err?.message);
 				getRPITemperature.notAvailable = true;
 				callback(null);
 			}
@@ -299,7 +306,7 @@ function getRPITemperature(callback)
 		{
 			if (err)
 			{
-				console.log('Warning! RPI Temperature is not available: ' + err.message);
+				console.log('Warning! RPI Temperature is not available: ' + err?.message);
 				getRPITemperature.notAvailable = true;
 				callback(null);
 			}
@@ -324,7 +331,7 @@ function getTraffic(callback)
 		{
 			if (err || stderr)
 			{
-				console.log('Warning! Traffic data is not available' + err.message);
+				console.log('Warning! Traffic data is not available ' + err?.message);
 				getTraffic.notAvailable = true;
 				callback(null);
 			}
@@ -365,6 +372,6 @@ function streamToCallback(callback, stream, length)
 	});
 	stream.on('error', (err) =>
 	{
-		callback(err.message);
+		callback(err?.message);
 	});
 }

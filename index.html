@@ -13,6 +13,12 @@
 	<br>
 	<a href="/stopCharge">Остановить зарядку</a>
 	<br>
+	<div class="status">
+		<b>Статус сервера</b>
+		<br>
+		<div class="status_indicator"></div>
+		<span class="status_text"></span>
+	</div>
 	<h2>Последние известные параметры телефона</h2>
 	<table id="batteryInfo"></table>
 	<h2>Текущие данные от сервера</h2>
@@ -22,6 +28,8 @@
 	(function()
 	{
 		'use strict';
+		const showServerStatusElement = document.querySelectorAll('.status_indicator');
+		const showServerStatusTextElement = document.querySelectorAll('.status_text');
 		getBatteryInfo();
 		function getBatteryInfo()
 		{
@@ -31,6 +39,8 @@
 				if (res.ok) return res.json();
 			}).then((data) =>
 			{
+				showServerStatusElement.forEach(element => element.classList.remove('status_not_available'));
+				showServerStatusTextElement.forEach(element => element.innerText = 'Доступен');
 				let whenNextRequest = DEFAULT_PERIOD;
 
 				const batteryInfoTable = document.getElementById('batteryInfo');
@@ -56,6 +66,8 @@
 				setTimeout(getBatteryInfo, whenNextRequest);
 			}).catch(() =>
 			{
+				showServerStatusElement.forEach(element => element.classList.add('status_not_available'));
+				showServerStatusTextElement.forEach(element => element.innerText = 'Не доступен');
 				setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 			});
 		}
@@ -98,4 +110,22 @@
 		}
 	})();
 </script>
+<style>
+	.status_indicator
+	{
+		border-radius: 50%;
+		width: 1rem;
+		height: 1rem;
+		background-color: green;
+		display: inline-block;
+	}
+	.status_not_available
+	{
+		background-color: red;
+	}
+	.status
+	{
+		padding-top: 1rem;
+	}
+</style>
 </html>
