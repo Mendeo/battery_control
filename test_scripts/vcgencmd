@@ -1,0 +1,16 @@
+#!/bin/bash
+randomTemp()
+{
+	min=$((10 * $1))
+	max=$((10 * $2))
+	temp100=$(($RANDOM * ($max - $min) / 32768 + $min))
+	temp10=$(($temp100 / 10))
+	temp=$temp10.$(($temp100 - $temp10 * 10))
+	echo $temp
+}
+if [ "$1" = "measure_temp" ]
+then
+	echo temp=$(randomTemp 32 75)\'C
+else
+	echo "Use measure_temp only"
+fi

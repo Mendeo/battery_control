@@ -1,0 +1,4 @@
+#!/bin/bash
+export PATH=$PATH:./test_scripts
+export COMSPEC="c:\Program Files\Git\bin\bash.exe"
+bash
