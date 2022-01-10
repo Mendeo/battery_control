@@ -6,7 +6,7 @@ else
 	status="NOT_CHARGING"
 fi
 chargeValue=$(cat /sys/class/power_supply/battery/capacity)
-chargePercent=$(($chargeValue / 10))
+chargePercent=$(($chargeValue / 2))
 echo {
 echo "  \"health\": \"GOOD\"",
 echo "  \"percentage\": $chargePercent",
@@ -15,4 +15,10 @@ echo "  \"status\": \"$status\"",
 echo "  \"temperature\": 22.0",
 echo "  \"current\": 194"
 echo }
-echo $(($chargeValue - 1)) > /sys/class/power_supply/battery/capacity
+if [ $status = "CHARGING" ]
+then
+	echo $(($chargeValue + 1)) > /sys/class/power_supply/battery/capacity
+else
+	echo $(($chargeValue - 1)) > /sys/class/power_supply/battery/capacity
+fi
+
