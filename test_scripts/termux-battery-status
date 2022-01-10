@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ $(cat /sys/class/gpio/gpio17/value) -eq 1 ]
+then
+	status="CHARGING"
+else
+	status="NOT_CHARGING"
+fi
+chargeValue=$(cat /sys/class/power_supply/battery/capacity)
+chargePercent=$(($chargeValue / 10))
+echo {
+echo "  \"health\": \"GOOD\"",
+echo "  \"percentage\": $chargePercent",
+echo "  \"plugged\": \"PLUGGED\"",
+echo "  \"status\": \"$status\"",
+echo "  \"temperature\": 22.0",
+echo "  \"current\": 194"
+echo }
+echo $(($chargeValue - 1)) > /sys/class/power_supply/battery/capacity
