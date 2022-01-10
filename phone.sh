@@ -1,6 +1,6 @@
 #!/bin/sh
 IS_STARTS_FROM_TERMUX=1
-SERVER="http://192.168.43.2:80"
+SERVER="http://localhost" #"http://192.168.43.2:80"
 DEFAULT_MAX_CHARGE=45
 CHECK_BATTERY_STATUS_PERIOD=30 #Секунды
 
