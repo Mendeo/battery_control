@@ -9,7 +9,7 @@ getBatteryData()
 	if [ $IS_STARTS_FROM_TERMUX -eq 1 ]
 	then
 		#Получаем данные о состоянии батареии, если запускаем из Termux
-		batteryData=$(termux-battery-status)
+		batteryData=$(echo $(termux-battery-status) | awk -v CHECK_BATTERY_STATUS_PERIOD=$CHECK_BATTERY_STATUS_PERIOD 'END { gsub("}", ", \"checkPeriod\": "CHECK_BATTERY_STATUS_PERIOD" }", $0); print $0 }')
 		currentPercent=$(echo "$batteryData" | awk '/percentage/ { sub(",","",$2); print($2) }')
 		batteryStatus=$(echo "$batteryData" | awk '/status/ { sub("\",","",$2); sub("\"","",$2); print($2) }')
 		NOT_CHARGING_STATUS="NOT_CHARGING"
@@ -26,7 +26,7 @@ getBatteryData()
 		voltage=$(cat /sys/class/power_supply/battery/batt_vol)
 		temperature=$(($(cat /sys/class/power_supply/battery/batt_temp) / 10))
 		#Создаём итоговый JSON, который отправится на сервер
-		batteryData="{ \"percent\": $currentPercent, \"status\": \"$batteryStatus\", \"health\": \"$health\", \"voltage\": $voltage, \"temperature\": $temperature }"
+		batteryData="{ \"percent\": $currentPercent, \"status\": \"$batteryStatus\", \"health\": \"$health\", \"voltage\": $voltage, \"temperature\": $temperature, \"checkPeriod\": $CHECK_BATTERY_STATUS_PERIOD }"
 	fi
 }
 

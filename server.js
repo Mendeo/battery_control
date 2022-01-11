@@ -20,7 +20,6 @@ const PORT = 80;
 const START_TIME = new Date();
 
 let LAST_BATTERY_INFO = (Buffer.from('{}')).toString('base64');
-let _lastBatteryInfoTime = Date.now();
 
 //GPIO Init
 let _isGPIOInitialized = false;
@@ -201,15 +200,10 @@ function app(req, res)
 					}
 					else
 					{
-						//console.log(body);
 						try
 						{
 							const obj = JSON.parse(body);
 							obj.lastInfoTime = new Date();
-							const intTime = obj.lastInfoTime.getTime();
-							obj.period = intTime - _lastBatteryInfoTime;
-							if (obj.period <= 2000) obj.period = 2000;
-							_lastBatteryInfoTime = intTime;
 							res.writeHead(204);
 							res.end();
 							LAST_BATTERY_INFO = (Buffer.from(JSON.stringify(obj))).toString('base64');
@@ -271,11 +265,6 @@ function getServerData(callback)
 			callback((Buffer.from(JSON.stringify(serverData))).toString('base64'));
 		}
 	}
-}
-
-function getServetStartTime(callback)
-{
-	callback(START_TIME);
 }
 
 function getRPITemperature(callback)

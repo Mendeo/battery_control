@@ -13,11 +13,17 @@
 	<br>
 	<a href="/stopCharge">Остановить зарядку</a>
 	<br>
-	<div class="status">
+	<div class="status" id="server_status">
 		<b>Статус сервера</b>
 		<br>
 		<div class="status_indicator"></div>
-		<span class="status_text"></span>
+		<span class="status_text">Неизвестно</span>
+	</div>
+	<div class="status" id="phone_status">
+		<b>Статус телефона</b>
+		<br>
+		<div class="status_indicator"></div>
+		<span class="status_text">Неизвестно</span>
 	</div>
 	<h2>Последние известные параметры телефона</h2>
 	<table id="batteryInfo"></table>
@@ -28,8 +34,11 @@
 	(function()
 	{
 		'use strict';
-		const showServerStatusElement = document.querySelectorAll('.status_indicator');
-		const showServerStatusTextElement = document.querySelectorAll('.status_text');
+		const showServerStatusElement = document.querySelector('#server_status .status_indicator');
+		const showServerStatusTextElement = document.querySelector('#server_status .status_text');
+
+		const showPhoneStatusElement = document.querySelector('#phone_status .status_indicator');
+		const showPhoneStatusTextElement = document.querySelector('#phone_status .status_text');
 		getBatteryInfo();
 		function getBatteryInfo()
 		{
@@ -39,23 +48,35 @@
 				if (res.ok) return res.json();
 			}).then((data) =>
 			{
-				showServerStatusElement.forEach(element => element.classList.remove('status_not_available'));
-				showServerStatusTextElement.forEach(element => element.innerText = 'Доступен');
+				showStatus(showServerStatusElement, showServerStatusTextElement, true);
 				let whenNextRequest = DEFAULT_PERIOD;
 
 				const batteryInfoTable = document.getElementById('batteryInfo');
 				const phoneData = parseServerInfo(data.phoneData);
 				if (phoneData)
 				{
-					if (phoneData.lastInfoTime && phoneData.period)
+					//console.log(phoneData);
+					if (phoneData.lastInfoTime && phoneData.checkPeriod)
 					{
 						const lastPhoneDataTime = new Date(phoneData.lastInfoTime);
 						phoneData.lastInfoTime = lastPhoneDataTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
 						const elapsed = Date.now() - lastPhoneDataTime.getTime();
-						let whenNextRequest = Number(phoneData.period) - elapsed + randomInteger(2000, 7000);
-						if (whenNextRequest < 0) whenNextRequest = Number(phoneData.period);
+						let whenNextRequest = Number(phoneData.checkPeriod) * 1000 - elapsed + randomInteger(3000, 8000);
+						if (whenNextRequest < 0) 
+						{
+							whenNextRequest = Number(phoneData.checkPeriod) * 1000 + 2000;
+							showStatus(showPhoneStatusElement, showPhoneStatusTextElement, false);
+						}
+						else
+						{
+							showStatus(showPhoneStatusElement, showPhoneStatusTextElement, true);
+						}
 					}
 					showObjectAsTable(phoneData, batteryInfoTable);
+				}
+				else
+				{
+					showStatus(showPhoneStatusElement, showPhoneStatusTextElement, false);
 				}
 				const serverData = parseServerInfo(data.serverData);
 				const serverInfoTable = document.getElementById('serverInfo');
@@ -66,10 +87,24 @@
 				setTimeout(getBatteryInfo, whenNextRequest);
 			}).catch(() =>
 			{
-				showServerStatusElement.forEach(element => element.classList.add('status_not_available'));
-				showServerStatusTextElement.forEach(element => element.innerText = 'Не доступен');
+				showStatus(showServerStatusElement, showServerStatusTextElement, false);
 				setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 			});
+		}
+		function showStatus(statusIndicatorElement, statusTextElement, isAvailable)
+		{
+			if (isAvailable)
+			{
+				statusIndicatorElement.classList.remove('status_not_available');
+				statusIndicatorElement.classList.add('status_available');
+				statusTextElement.innerText = 'Доступен';
+			}
+			else
+			{
+				statusIndicatorElement.classList.remove('status_available');
+				statusIndicatorElement.classList.add('status_not_available');
+				statusTextElement.innerText = 'Не доступен';
+			}
 		}
 		function showObjectAsTable(obj, tableElement)
 		{
@@ -116,12 +151,16 @@
 		border-radius: 50%;
 		width: 1rem;
 		height: 1rem;
-		background-color: green;
+		background-color: gray;
 		display: inline-block;
 	}
 	.status_not_available
 	{
 		background-color: red;
+	}
+	.status_available
+	{
+		background-color: green;
 	}
 	.status
 	{
