@@ -59,7 +59,7 @@
 					if (phoneData.lastInfoTime && phoneData.checkPeriod)
 					{
 						const lastPhoneDataTime = new Date(phoneData.lastInfoTime);
-						phoneData.lastInfoTime = lastPhoneDataTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+						phoneData.lastInfoTime = lastPhoneDataTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', month: "numeric" });
 						const elapsed = Date.now() - lastPhoneDataTime.getTime();
 						let whenNextRequest = Number(phoneData.checkPeriod) * 1000 - elapsed + randomInteger(3000, 8000);
 						if (whenNextRequest < 0) 
