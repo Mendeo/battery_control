@@ -10,8 +10,8 @@ getBatteryData()
 	then
 		#Получаем данные о состоянии батареии, если запускаем из Termux
 		batteryData=$(echo $(termux-battery-status) | awk -v CHECK_BATTERY_STATUS_PERIOD=$CHECK_BATTERY_STATUS_PERIOD 'END { gsub("}", ", \"checkPeriod\": "CHECK_BATTERY_STATUS_PERIOD" }", $0); print $0 }')
-		currentPercent=$(echo "$batteryData" | awk '/percentage/ { sub(",","",$2); print($2) }')
-		batteryStatus=$(echo "$batteryData" | awk '/status/ { sub("\",","",$2); sub("\"","",$2); print($2) }')
+		currentPercent=$(echo "$batteryData" | awk 'BEGIN {RS = ","; FS = ":"} /percentage/ {gsub(/^[ \t]+/, "", $2); print $2 }')
+		batteryStatus=$(echo "$batteryData" | awk 'BEGIN {RS = ","; FS = ":"} /status/ {gsub(/^[ \t]+|"/, "", $2); print $2 }')
 		NOT_CHARGING_STATUS="NOT_CHARGING"
 		CHARGING_STATUS="CHARGING"
 	else
@@ -29,7 +29,6 @@ getBatteryData()
 		batteryData="{ \"percent\": $currentPercent, \"status\": \"$batteryStatus\", \"health\": \"$health\", \"voltage\": $voltage, \"temperature\": $temperature, \"checkPeriod\": $CHECK_BATTERY_STATUS_PERIOD }"
 	fi
 }
-
 #Определеяем в каком диапазоне держать заряд или вообще не управлять зарядом
 IS_MANUAL=0
 if [ -z $1 ]
