@@ -21,10 +21,10 @@
 		<span class="status_text">Неизвестно</span>
 	</div>
 	<div>
-		<span>Работает с <span id="server-start-time"></span></span>
+		<span>Работает с <span id="server-start-time">-</span></span>
 		<br>
 		<span>Время работы: </span>
-		<span id="server_uptime"></span>
+		<span id="server_uptime">-</span>
 		<span id="server_uptime_dimension"></span>
 	</div>
 	<div class="status" id="phone_status">
@@ -43,24 +43,19 @@
 	{
 		'use strict';
 		//Определяем время работы сервера
-		const startTime = new Date(document.querySelector('meta[itemprop="server-start-time"]').content);
-		document.getElementById('server-start-time').innerText = startTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', month: "numeric", year: "numeric" });
+		const startTimeDataElement = document.querySelector('meta[itemprop="server-start-time"]');
+		const startTimeTextElement = document.getElementById('server-start-time')
+		let _startTime = new Date(startTimeDataElement.content);
+		startTimeTextElement.innerText = _startTime.toLocaleString('ru-RU', { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', month: "numeric", year: "numeric" });
 		const serverUptimeElement = document.getElementById('server_uptime');
 		const serverUptimeDimensionElement = document.getElementById('server_uptime_dimension');
 		updateUptime();
-		function updateUptime()
-		{
-			const seconds = Math.round((Date.now() - startTime.getTime()) / 1000);
-			serverUptimeElement.innerText = seconds;
-			serverUptimeDimensionElement.innerText = nameNumbersSeconds(seconds);
-			setTimeout(updateUptime, 1000);
-		}
 		const showServerStatusElement = document.querySelector('#server_status .status_indicator');
 		const showServerStatusTextElement = document.querySelector('#server_status .status_text');
-
 		const showPhoneStatusElement = document.querySelector('#phone_status .status_indicator');
 		const showPhoneStatusTextElement = document.querySelector('#phone_status .status_text');
 		getBatteryInfo();
+
 		function getBatteryInfo()
 		{
 			const DEFAULT_PERIOD = 15000;
@@ -69,9 +64,14 @@
 				if (res.ok) return res.json();
 			}).then((data) =>
 			{
+				//Включаем отображение времени.
 				showStatus(showServerStatusElement, showServerStatusTextElement, true);
+				if (!_startTime)
+				{
+					location.reload();
+					return;
+				}
 				let whenNextRequest = DEFAULT_PERIOD;
-
 				const batteryInfoTable = document.getElementById('batteryInfo');
 				const phoneData = parseServerInfo(data.phoneData);
 				if (phoneData)
@@ -109,6 +109,9 @@
 			}).catch(() =>
 			{
 				showStatus(showServerStatusElement, showServerStatusTextElement, false);
+				showStatus(showPhoneStatusElement, showPhoneStatusTextElement, false);
+				updateUptime(true);
+				startTimeTextElement.innerText = '-';
 				setTimeout(getBatteryInfo, DEFAULT_PERIOD);
 			});
 		}
@@ -189,6 +192,22 @@
 				case 2: case 3: case 4:
 					return words[2];
 				}
+			}
+		}
+		function updateUptime(unknown)
+		{
+			if (unknown)
+			{
+				serverUptimeElement.innerText = '-';
+				serverUptimeDimensionElement.innerText = '';
+				_startTime = null;
+			}
+			else
+			{
+				const seconds = Math.round((Date.now() - _startTime.getTime()) / 1000);
+				serverUptimeElement.innerText = seconds;
+				serverUptimeDimensionElement.innerText = nameNumbersSeconds(seconds);
+				setTimeout(updateUptime, 1000);
 			}
 		}
 	})();
