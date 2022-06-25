@@ -18,6 +18,8 @@ const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
 const favicon_ico = fs.readFileSync(path.join(__dirname, 'favicon.ico'));
 const PORT = 80;
 
+const CHRAGE_STATISTIC = [];
+
 const index_html = Buffer.from(index_html_raw.toString().replace('!@~#~@!', START_TIME));
 
 let LAST_BATTERY_INFO = (Buffer.from('{}')).toString('base64');
@@ -137,6 +139,9 @@ function app(req, res)
 				res.end();
 			}
 		});
+		CHRAGE_STATISTIC.push({
+			start: new Date()
+		});
 	}
 	else if (url === '/stopCharge')
 	{
@@ -154,6 +159,12 @@ function app(req, res)
 				res.end();
 			}
 		});
+		const stObj = CHRAGE_STATISTIC.at(-1);
+		if (!stObj)
+		{
+			stObj.stop = new Date();
+			stObj.period = stObj.stop.getTime() - stObj.start.getTime();
+		}
 	}
 	else if (url === '/setBatteryInfo')
 	{
