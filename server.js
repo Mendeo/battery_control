@@ -9,6 +9,7 @@ const GPIO_NUMBER = 17;
 const GPIO_SELECT_FILE = '/sys/class/gpio/export';
 const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
 const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
+const PHONE_CHARGE_STATISTIC_FILE = '/mnt/ramdisk/phone_charge.csv';
 
 const RPI_TEMPERATURE_COMMAND = 'vcgencmd measure_temp'; //'/sys/class/thermal/thermal_zone0/temp';
 const TRAFFIC_COMMAND = 'wg show | awk -F \': \' \'/transfer/ {print ($2);}\'';
@@ -17,8 +18,16 @@ const index_html_raw = fs.readFileSync(path.join(__dirname, 'index.html'));
 const robots_txt = fs.readFileSync(path.join(__dirname, 'robots.txt'));
 const favicon_ico = fs.readFileSync(path.join(__dirname, 'favicon.ico'));
 const PORT = 80;
-
-const CHRAGE_STATISTIC = [];
+let START_CHARGE_TIME, END_CHARGE_TIME;
+let canChargeStatistic = true;
+fs.writeFile(PHONE_CHARGE_STATISTIC_FILE, 'time,period\n', (err) =>
+{
+	if (err)
+	{
+		console.log('Can\'t open ' + PHONE_CHARGE_STATISTIC_FILE + '! No charge statistic');
+		canChargeStatistic = false;
+	}
+});
 
 const index_html = Buffer.from(index_html_raw.toString().replace('!@~#~@!', START_TIME));
 
@@ -139,9 +148,7 @@ function app(req, res)
 				res.end();
 			}
 		});
-		CHRAGE_STATISTIC.push({
-			start: new Date()
-		});
+		START_CHARGE_TIME = new Date();
 	}
 	else if (url === '/stopCharge')
 	{
@@ -159,11 +166,11 @@ function app(req, res)
 				res.end();
 			}
 		});
-		const stObj = CHRAGE_STATISTIC.at(-1);
-		if (!stObj)
+		END_CHARGE_TIME = new Date();
+		if (canChargeStatistic && START_CHARGE_TIME)
 		{
-			stObj.stop = new Date();
-			stObj.period = stObj.stop.getTime() - stObj.start.getTime();
+			const period = END_CHARGE_TIME.getTime() - START_CHARGE_TIME.getTime();
+			fs.writeFile(PHONE_CHARGE_STATISTIC_FILE, getChargePeriodString(period), { flag: 'a' });
 		}
 	}
 	else if (url === '/setBatteryInfo')
@@ -251,6 +258,23 @@ function app(req, res)
 	{
 		res.writeHead(404);
 		res.end('The requested page was not found');
+	}
+}
+
+function getChargePeriodString(period)
+{
+	const d = new Date();
+	const year = d.getFullYear().toString();
+	const month = addZeroToString(d.getMonth() + 1);
+	const date = addZeroToString(d.getDate());
+	const hours = addZeroToString(d.getHours());
+	const minutes = addZeroToString(d.getMinutes());
+	const seconds = addZeroToString(d.getSeconds());
+	return `${year}-${month}-${date}T${hours}:${minutes}:${seconds},${period}\n`;
+
+	function addZeroToString(value)
+	{
+		return value < 10 ? '0' + value.toString() : value.toString();
 	}
 }
 
