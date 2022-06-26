@@ -170,7 +170,10 @@ function app(req, res)
 		if (canChargeStatistic && START_CHARGE_TIME)
 		{
 			const period = END_CHARGE_TIME.getTime() - START_CHARGE_TIME.getTime();
-			fs.writeFile(PHONE_CHARGE_STATISTIC_FILE, getChargePeriodString(period), { flag: 'a' });
+			fs.writeFile(PHONE_CHARGE_STATISTIC_FILE, getChargePeriodString(period), { flag: 'a' }, (err) =>
+			{
+				if (err) console.log(err?.message);
+			});
 		}
 	}
 	else if (url === '/setBatteryInfo')
