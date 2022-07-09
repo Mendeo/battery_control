@@ -10,6 +10,7 @@ const GPIO_SELECT_FILE = '/sys/class/gpio/export';
 const GPIO_SET_DIRECTION_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/direction`;
 const GPIO_VALUE_FILE = `/sys/class/gpio/gpio${GPIO_NUMBER}/value`;
 const PHONE_CHARGE_STATISTIC_FILE = '/mnt/ramdisk/phone_charge.csv';
+const PHONE_DISCHARGE_STATISTIC_FILE = '/mnt/ramdisk/phone_discharge.csv';
 
 const RPI_TEMPERATURE_COMMAND = 'vcgencmd measure_temp'; //'/sys/class/thermal/thermal_zone0/temp';
 const TRAFFIC_COMMAND = 'wg show | awk -F \': \' \'/transfer/ {print ($2);}\'';
@@ -149,6 +150,14 @@ function app(req, res)
 			}
 		});
 		START_CHARGE_TIME = new Date();
+		if (canChargeStatistic && END_CHARGE_TIME)
+		{
+			const period = START_CHARGE_TIME.getTime() - END_CHARGE_TIME.getTime();
+			fs.writeFile(PHONE_DISCHARGE_STATISTIC_FILE, getChargePeriodString(period), { flag: 'a' }, (err) =>
+			{
+				if (err) console.log(err?.message);
+			});
+		}
 	}
 	else if (url === '/stopCharge')
 	{
